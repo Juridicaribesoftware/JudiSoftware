@@ -1,0 +1,46 @@
+#root {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  text-align: center;
+}
+
+.contenedor {
+  display: flex;
+  flex-direction: column;
+
+}
+
+.loader {
+  width: 50px;
+  aspect-ratio: 1;
+  border: 2px solid;
+  box-sizing: border-box;
+  border-radius: 50%;
+  display: grid;
+  animation: l11 1.5s infinite linear;
+  transform-origin: 50% 80%;
+}
+.loader:before,
+.loader:after {
+  content: "";
+  grid-area: 1/1;
+  border: inherit;
+  border-radius: 50%;
+  animation: inherit;
+  animation-duration: 1s;
+  transform-origin: inherit;
+}
+.loader:after {
+  --s:-1;
+}
+@keyframes l11 {
+   100% {transform:rotate(calc(var(--s,1)*1turn))}
+}
+
+.loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px; /* Ajusta según sea necesario */
+}

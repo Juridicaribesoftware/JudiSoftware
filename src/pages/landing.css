@@ -1,0 +1,158 @@
+/* Contenedor que centra el componente SignIn */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f4f4f4;
+  }
+  
+  section {
+    width: 100%;
+    max-width: 400px;
+    background-color: #fff;
+    padding: 40px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+  }
+  
+  /* El resto del CSS para los estilos internos */
+  .signin .content2 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .signin h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 2rem;
+  }
+  
+  .form .inputBox {
+    position: relative;
+    margin-bottom: 30px;
+    width: 100%;
+  }
+  
+  .form .inputBox input[type="text"],
+  .form .inputBox input[type="password"],
+  .form .inputBox input[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid #aaa;
+    outline: none;
+    color: #333;
+    font-size: 1rem;
+    transition: 0.3s;
+  }
+  
+  .form .inputBox input[type="text"]:focus,
+  .form .inputBox input[type="password"]:focus {
+    border-bottom: 2px solid #61dafb;
+  }
+  
+  .form .inputBox i {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 10px 0;
+    pointer-events: none;
+    color: #aaa;
+    transition: 0.3s;
+    font-style: normal;
+  }
+  
+  .form .inputBox input:focus ~ i,
+  .form .inputBox input:not(:placeholder-shown) ~ i {
+    top: -20px;
+    left: 0;
+    color: #61dafb;
+    font-size: 0.8rem;
+  }
+  
+  .links {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 30px;
+  }
+  
+  .links a {
+    color: #61dafb;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: 0.3s;
+  }
+  
+  .links a:hover {
+    text-decoration: underline;
+  }
+  
+  .form .inputBox input[type="submit"] {
+    background-color: #61dafb;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    border: none;
+    font-weight: bold;
+    transition: background-color 0.3s;
+  }
+  
+  .form .inputBox input[type="submit"]:hover {
+    background-color: #4a9bc7;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 480px) {
+    section {
+      padding: 30px;
+      max-width: 350px;
+    }
+  
+    .signin h2 {
+      font-size: 1.8rem;
+    }
+  
+    .form .inputBox i {
+      font-size: 0.9rem;
+    }
+  }
+  
+  /* HTML: <div class="loader"></div> */
+.loader {
+  width: 50px;
+  aspect-ratio: 1;
+  border: 2px solid;
+  box-sizing: border-box;
+  border-radius: 50%;
+  display: grid;
+  animation: l11 1.5s infinite linear;
+  transform-origin: 50% 80%;
+}
+.loader:before,
+.loader:after {
+  content: "";
+  grid-area: 1/1;
+  border: inherit;
+  border-radius: 50%;
+  animation: inherit;
+  animation-duration: 1s;
+  transform-origin: inherit;
+}
+.loader:after {
+  --s:-1;
+}
+@keyframes l11 {
+   100% {transform:rotate(calc(var(--s,1)*1turn))}
+}
+
+.loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px; /* Ajusta según sea necesario */
+}
+

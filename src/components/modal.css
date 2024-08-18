@@ -1,0 +1,30 @@
+/* styles.css */
+.modal {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    width: 500px;
+    max-width: 90%;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1001;
+    
+}
+
+.overlay {
+    background: rgba(0, 0, 0, 0.5); 
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+form {
+    max-height: 400px;
+    overflow-y: scroll;
+}

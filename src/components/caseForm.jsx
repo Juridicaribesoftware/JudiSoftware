@@ -19,6 +19,16 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
         return formData[field] && formData[field][nestedField] ? formData[field][nestedField] : 'No disponible';
     };
 
+    const cambioFecha = (fecha) => {
+        const fechaa = new Date(fecha)
+        const fechaNormal = fechaa.toLocaleString('en-GB',{
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        }) 
+        return fechaNormal 
+    }
+
     const eliminarCaso = (casoId) => {
         try {
             Axios('DELETE', `casos/eliminar/${casoId}`)
@@ -156,7 +166,7 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
 
                     <div className="form-group">
                         <label htmlFor="fechaDeAsignacion">FECHA DE ASIGNACION</label>
-                        <label htmlFor="fechaDeAsignacion">{getFieldValue('fechaDeAsignacion')}</label>
+                        <label htmlFor="fechaDeAsignacion">{cambioFecha(getFieldValue('fechaDeAsignacion'))}</label>
                     </div>
 
                     <div className="form-group">

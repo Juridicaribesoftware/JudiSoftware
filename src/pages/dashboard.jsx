@@ -209,7 +209,7 @@ export const Dashboard = () => {
                                 <p className="upload-text">Archivo Cargado</p>
                             </>
                         ) : (
-                            <p className="upload-text">Arrastra y suelta archivos de excel</p>
+                            <p className="upload-text">Seleccionar el archivo de Excel</p>
                         )}
                         {file && (
                             <>
@@ -229,7 +229,7 @@ export const Dashboard = () => {
             {file && (
                 <>
                     <progress id="file" max={totales} value={valor}></progress>
-                    <div className="progress-text">{porcentaje}%</div>
+                    <div className="progress-text">{porcentaje.toFixed(2)}%</div>
                 </>
             )}
         </div>

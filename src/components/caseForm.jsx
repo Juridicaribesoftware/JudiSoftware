@@ -20,7 +20,7 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
     };
 
     const cambioFecha = (fecha) => {
-       return fecha
+        return fecha
     }
 
     const eliminarCaso = (casoId) => {
@@ -79,7 +79,7 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
                             <path d="M5 12l6 -6" />
                         </svg>
                     </button>
-                    {user === 'admin' && (
+                    {localStorage.getItem('usuario') === 'admin' && (
                         <>
                             <button onClick={() => eliminarCaso(formData._id)} className='cerrar'>
                                 <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-trash" width="24" height="24" viewBox="0 0 24 24" strokeWidth="1.5" stroke="#00bfd8" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -91,36 +91,35 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
                                     <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
                                 </svg>
                             </button>
-                            {
-                                mostrarComentarios ? (
-                                    <button onClick={() => setMostrarComentarios(false)} className='cerrar'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-circle-arrow-up" width="24" height="24" viewBox="0 0 24 24" strokeWidth="1.5" stroke="#00bfd8" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
-                                            <path d="M12 8l-4 4" />
-                                            <path d="M12 8v8" />
-                                            <path d="M16 12l-4 -4" />
-                                        </svg>
-                                    </button>
-                                ) : (
-                                    <button onClick={() => setMostrarComentarios(true)} className='cerrar'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-circle-arrow-down" width="24" height="24" viewBox="0 0 24 24" strokeWidth="1.5" stroke="#00bfd8" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
-                                            <path d="M8 12l4 4" />
-                                            <path d="M12 8v8" />
-                                            <path d="M16 12l-4 4" />
-                                        </svg>
-                                    </button>
-                                )
-                            }
-
                         </>
                     )}
+                    {
+                        mostrarComentarios ? (
+                            <button onClick={() => setMostrarComentarios(false)} className='cerrar'>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-circle-arrow-up" width="24" height="24" viewBox="0 0 24 24" strokeWidth="1.5" stroke="#00bfd8" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+                                    <path d="M12 8l-4 4" />
+                                    <path d="M12 8v8" />
+                                    <path d="M16 12l-4 -4" />
+                                </svg>
+                            </button>
+                        ) : (
+                            <button onClick={() => setMostrarComentarios(true)} className='cerrar'>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-circle-arrow-down" width="24" height="24" viewBox="0 0 24 24" strokeWidth="1.5" stroke="#00bfd8" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+                                    <path d="M8 12l4 4" />
+                                    <path d="M12 8v8" />
+                                    <path d="M16 12l-4 4" />
+                                </svg>
+                            </button>
+                        )
+                    }
                 </div>
                 {
 
-                    mostrarComentarios && (<Comentarios caso={caseData} setCaso = {setCaso} setCasos={setCasos} />)
+                    mostrarComentarios && (<Comentarios caso={caseData} setCaso={setCaso} setCasos={setCasos} />)
                 }
                 <h1 className="form-title">INFORMACIÓN DEL CASO</h1>
                 <br />

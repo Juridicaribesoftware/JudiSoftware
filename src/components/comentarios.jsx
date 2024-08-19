@@ -114,12 +114,12 @@ const Comentarios = ({ caso, setCasos, setCaso }) => {
                     </ul>
 
                     <div className="input-container ">
-                        <input
+                        <textarea
                             type="text"
                             value={nuevoComentario}
                             onChange={(e) => setNuevoComentario(e.target.value)}
                             placeholder="Agregar un nuevo comentario"
-                        />
+                        ></textarea>
                         <button className="excel-button" onClick={handleAddComentario}>Agregar Comentario</button>
                     </div>
                 </>

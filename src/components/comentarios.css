@@ -61,14 +61,16 @@
     align-items: center;
 }
 
-.input-container input {
+.input-container textarea {
     flex: 1;
-    padding: 10px;
+    padding: 10px 20px;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 1rem;
     margin-right: 10px;
     transition: border-color 0.3s;
+    min-height: 100px;
+    overflow-y: scroll;
 }
 
 .input-container input:focus {
@@ -134,7 +136,14 @@
 .comentario-text {
     font-size: 1rem;
     color: #555;
+    text-overflow: ellipsis; 
+    word-wrap: break-word;
+    white-space: normal; /* Permite que las líneas se rompan en palabras */
+    overflow-wrap: break-word; /* Fuerza a que las palabras largas se rompan */
+    max-width: 100%; /* Asegura que el contenedor no se expanda más allá de su contenedor padre */
+    text-align: left;
 }
+
 
 .comentario-button {
     align-self: flex-start;

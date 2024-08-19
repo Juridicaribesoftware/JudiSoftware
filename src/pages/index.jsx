@@ -279,7 +279,7 @@ export const Home = () => {
                                         </select>
                                     </div>
                                     <div className="form-row">
-                                        <label>Fecha de terminacion:</label>
+                                        <label>Fecha de terminación:</label>
                                         <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
                                     </div>
                                 </div>
@@ -295,9 +295,9 @@ export const Home = () => {
                                         <thead>
                                             <tr>
                                                 <th>N°</th>
-                                                <th>Titulo</th>
+                                                <th>TÍtulo</th>
                                                 <th>Cliente</th>
-                                                <th>Area</th>
+                                                <th>Área</th>
                                                 <th>Centro De Trabajo</th>
                                                 <th>Abogado A Cargo</th>
                                                 <th>Opciones</th>

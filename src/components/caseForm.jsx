@@ -11,22 +11,16 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
 
     // Función para obtener el valor del campo o un mensaje predeterminado
     const getFieldValue = (field) => {
-        return formData[field] ? formData[field] : 'No disponible';
+        return formData[field] ? formData[field] : '';
     };
 
     // Función para manejar la validación de campos anidados
     const getNestedFieldValue = (field, nestedField) => {
-        return formData[field] && formData[field][nestedField] ? formData[field][nestedField] : 'No disponible';
+        return formData[field] && formData[field][nestedField] ? formData[field][nestedField] : '';
     };
 
     const cambioFecha = (fecha) => {
-        const fechaa = new Date(fecha)
-        const fechaNormal = fechaa.toLocaleString('en-GB',{
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-        }) 
-        return fechaNormal 
+       return fecha
     }
 
     const eliminarCaso = (casoId) => {
@@ -128,24 +122,24 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
 
                     mostrarComentarios && (<Comentarios caso={caseData} setCaso = {setCaso} setCasos={setCasos} />)
                 }
-                <h1 className="form-title">INFORMACION DEL CASO</h1>
+                <h1 className="form-title">INFORMACIÓN DEL CASO</h1>
                 <br />
                 <br />
                 <br />
                 <br />
                 <form className="case-form">
                     <div className="form-group">
-                        <label htmlFor="numero">NUMERO</label>
+                        <label htmlFor="numero">NÚMERO</label>
                         <label htmlFor="numero">{getFieldValue('numero')}</label>
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="codigo">CODIGO</label>
+                        <label htmlFor="codigo">CÓDIGO</label>
                         <label htmlFor="codigo">{getFieldValue('codigo')}</label>
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="titulo">TITULO</label>
+                        <label htmlFor="titulo">TÍTULO</label>
                         <label htmlFor="titulo">{getFieldValue('titulo')}</label>
                     </div>
 
@@ -160,12 +154,12 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="area">AREA</label>
+                        <label htmlFor="area">ÁREA</label>
                         <label htmlFor="area">{getFieldValue('area')}</label>
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="fechaDeAsignacion">FECHA DE ASIGNACION</label>
+                        <label htmlFor="fechaDeAsignacion">FECHA DE ASIGNACIÓN</label>
                         <label htmlFor="fechaDeAsignacion">{cambioFecha(getFieldValue('fechaDeAsignacion'))}</label>
                     </div>
 
@@ -190,7 +184,7 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="siniestro">SINIESTRO</label>
+                        <label htmlFor="siniestro">NÚMERO DE SINIESTRO</label>
                         <label htmlFor="siniestro">{getNestedFieldValue('siniestro', 'numero')}</label>
                     </div>
 
@@ -200,7 +194,7 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="poliza">POLIZA</label>
+                        <label htmlFor="poliza">PÓLIZA</label>
                         <label htmlFor="poliza">{getFieldValue('poliza')}</label>
                     </div>
 
@@ -215,7 +209,7 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="numeroAplicativo">NUMERO DE APLICATIVO</label>
+                        <label htmlFor="numeroAplicativo">NÚMERO DE APLICATIVO</label>
                         <label htmlFor="numeroAplicativo">{getFieldValue('numeroAplicativo')}</label>
                     </div>
 
@@ -439,22 +433,22 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="jurisdiccion0">Jurisdicción</label>
+                        <label htmlFor="jurisdiccion0">JURISDICCIÓN</label>
                         <label htmlFor="jurisdiccion0">{getFieldValue('jurisdiccion0')}</label>
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="juzgado">Juzgado</label>
+                        <label htmlFor="juzgado">JUZGADO</label>
                         <label htmlFor="juzgado">{getNestedFieldValue('juzgado', 'nombre')}</label>
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="fechaUltimaActuacion">Fecha Última Actuación</label>
+                        <label htmlFor="fechaUltimaActuacion">FECHA ÚLTIMA ACTUACIÓN</label>
                         <label htmlFor="fechaUltimaActuacion">{cambioFecha(getFieldValue('fechaUltimaActuacion'))}</label>
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor=" tituloUltimaActuacion">Título Última Actuación</label>
+                        <label htmlFor=" tituloUltimaActuacion">TÍTULO ÚLTIMA ACTUACIÓN</label>
                         <label htmlFor=" tituloUltimaActuacion">{getFieldValue('tituloUltimaActuacion')}</label>
                     </div>
 

@@ -68,29 +68,10 @@ export const Dashboard = () => {
             }
             worksheet.eachRow((row, rowNumber) => {
                 if (rowNumber === 1) return; // Saltar la fila de encabezados
-                const isValidDate = (date) => {
-                    if (date === null || date === "" || date === "N/A") return false; // Consideramos nulos y vacíos como no válidos
-                    const parsedDate = new Date(date);
-                    return !isNaN(parsedDate.getTime()); // Devuelve true si la fecha es válida
-                };
-                const parseDate = (dateStr) => {
-                    if (typeof dateStr === 'string') { // Verifica si dateStr es una cadena
-                        const [day, month, year] = dateStr.split('/');
-                        if (day && month && year) {
-                            const isoDateStr = `${year}-${month}-${day}`;
-                            return new Date(isoDateStr);
-                        }
-                    }
-                    return null; // Si no se puede parsear, devolvemos null
-                };
+
                 const normalizeValue = (value) => {
-                    if (value === "" || value === "N/A") return null; // Devolvemos null para valores vacíos o "N/A"
-                    // Intentar convertir a fecha si es una cadena de fecha
-                    const parsedDate = parseDate(value);
-                    if (parsedDate && isValidDate(parsedDate)) {
-                        return parsedDate; // Devolver objeto Date si la fecha es válida
-                    }
-                    return value; // Devolver el valor original si no es una fecha válida
+                    if (value === "" || value === "N/A") return null; 
+                    return value;
                 };
                 const rowData = {
                     numero: normalizeValue(row.getCell(1).value),
@@ -157,12 +138,12 @@ export const Dashboard = () => {
                     asegurado: normalizeValue(row.getCell(63).value),
                     jurisdiccion: normalizeValue(row.getCell(64).value),
                     juzgado: { nombre: normalizeValue(row.getCell(64).value) },
-                    fechaUltimaActuacion: normalizeValue(row.getCell(65).value),
+                    fechaUltimaActuacion: new Date(row.getCell(65).value).toLocaleDateString('es-ES'),
                     tituloUltimaActuacion: normalizeValue(row.getCell(66).value)
                 };
                 rows.push(rowData);
             });
-           
+
             const largo = rows.length - 1
             setTotales(rows.length)
             console.log(rows)
@@ -181,6 +162,7 @@ export const Dashboard = () => {
             }
             setLoader(true)
             for (let i = 0; i < rows.length; i++) {
+                console.log(rows[i])
                 try {
                     const res = await Axios('POST', 'casos/crear', rows[i]);
                     console.log(`Caso ${i + 1} agregado:`, res.data);

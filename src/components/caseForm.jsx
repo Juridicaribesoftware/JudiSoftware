@@ -34,6 +34,13 @@ const CaseForm = ({ caseId, setCaso, cerrar, user, casos, setCasos }) => {
     }, [Token('token-accses')])
     useEffect(() => {
         setloader(true)
+        Axios('GET', `casos/${caseId._id}`, null)
+        .then(res =>{
+            setFormData(res.data.caso)
+        })
+        .catch(err => {
+            console.log(err)
+        })
     }, [])
     // Función para obtener el valor del campo o un mensaje predeterminado
     const getFieldValue = (field) => {

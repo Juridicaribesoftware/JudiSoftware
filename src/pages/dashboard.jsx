@@ -1,235 +1,201 @@
-
-import Navigation from '../navigation'
+import Axios from '../hooks/useAxios';
+import Navigation from '../navigation';
 import './dash.css';
-import ExcelJS from 'exceljs'
-import Axios from '../hooks/useAxios'
 import { useState } from 'react';
+
 export const Dashboard = () => {
     const [file, setFile] = useState(null);
-    const [loader, setLoader] = useState(false)
-    const [porcentaje, setPorcentaje] = useState(0)
-    const [totales, setTotales] = useState(0)
-    const [valor, setValor] = useState(0)
+    const [loader, setLoader] = useState(false);
+    const [dragging, setDragging] = useState(false); // Nuevo estado para manejar el arrastre
+    const [totales, setTotales] = useState(0); // Ejemplo de progreso total
+    const [valor, setValor] = useState(0); // Ejemplo de progreso actual
+    const [porcentaje, setPorcentaje] = useState(0); // Ejemplo de porcentaje
+    const [correctos, setCorrectos] = useState(0)
+    const [incorrectos, setIncorrectos] = useState(0)
+
+    // Maneja el archivo seleccionado o arrastrado
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
-        e.target.value = null;
+        e.target.value = null; // Limpiar el input después de seleccionar el archivo
     };
-    const handleImport = async () => {
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const buffer = e.target.result;
-            const workbook = new ExcelJS.Workbook();
-            if (!buffer) {
-                console.error('Buffer is undefined or null');
+
+    // Simula la importación de archivos
+    const handleImport = async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('file', file);
+        console.log('entrando')
+        setLoader(true)
+        setCorrectos(0)
+        setIncorrectos(0)
+        setValor(0)
+        setPorcentaje(0)
+        Axios('POSTFILE', 'casos/agregarexcel', formData)
+            .then(res => {
+                let numeroCasos = ''
+                for (let index = 0; index < res.data.casos.length; index++) {
+                    numeroCasos = numeroCasos + ' | ' + (res.data.casos[index].numero ? res.data.casos[index].numero : 'N/A')
+                }
                 Swal.fire({
-                    title: "¡Atención!",
-                    text: "Verifique en el archivo que desea importar, contenga información y este bien estructurado",
-                    icon: "warning"
-                })
-                setPorcentaje(0)
-                setValor(0)
-                setTotales(0)
-                setFile(false)
-                return;
-            }
-            try {
-                await workbook.xlsx.load(buffer);
-            } catch (error) {
-                console.error('Error loading workbook:', error);
-                Swal.fire({
-                    title: "¡Atención!",
-                    text: "No se pudo cargar el archivo. Verifica que sea un archivo Excel válido.",
-                    icon: "warning"
-                })
-                setPorcentaje(0)
-                setValor(0)
-                setTotales(0)
-                setFile(false)
-                return;
-            }
+                    title: res.data.message,
+                    text: 'Casos Mapeados validos para el ingreso a la base datos Judisoftware ' + 'Casos Totales Entontrados: ' + res.data.casos.length + ' \n----->\n' + numeroCasos,
+                    icon: "warning",
+                    showCancelButton: true,
+                    showDenyButton: true,
+                    confirmButtonColor: "#3085d6",
+                    denyButtonColor: '#3085d6',
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Ingresas Casos",
+                    denyButtonText: `Mas Información`
+                }).then(async (result) => {
+                    let casoGuardado = ''
+                    if (result.isConfirmed) {
+                        setTotales(res.data.casos.length);
+                        setLoader(true);
 
-            await workbook.xlsx.load(buffer);
+                        // Usamos un bucle for..of con async/await para manejar las promesas secuencialmente
+                        for (let index = 0; index < res.data.casos.length; index++) {
+                            try {
 
-            const worksheet = workbook.getWorksheet('Procesos'); // Asegúrate que el nombre coincida con la hoja en Excel
-            const rows = [];
-            if (!worksheet) {
-                console.error('Worksheet not found!');
-                Swal.fire({
-                    title: "¡Atención!",
-                    text: "Verifique en el archivo que desea importar, la hoja de excel se llame Literelmante 'Procesos'",
-                    icon: "warning"
-                })
-                setPorcentaje(0)
-                setValor(0)
-                setTotales(0)
-                setFile(false)
-                return;
-            }
-            worksheet.eachRow((row, rowNumber) => {
-                if (rowNumber === 1) return; // Saltar la fila de encabezados
 
-                const normalizeValue = (value) => {
-                    if (value === "" || value === "N/A") return null; 
-                    return value;
-                };
-                const rowData = {
-                    numero: normalizeValue(row.getCell(1).value),
-                    codigo: normalizeValue(row.getCell(2).value),
-                    titulo: normalizeValue(row.getCell(3).value),
-                    cliente: { nombre: normalizeValue(row.getCell(4).value) },
-                    asunto: normalizeValue(row.getCell(5).value),
-                    area: normalizeValue(row.getCell(6).value),
-                    fechaDeAsignacion: normalizeValue(row.getCell(7).value),
-                    centroDeTrabajo: normalizeValue(row.getCell(8).value),
-                    directorACargo: { nombre: normalizeValue(row.getCell(9).value) },
-                    abogadoACargo: { nombre: normalizeValue(row.getCell(10).value) },
-                    abogadoInternoDeLaCompania: { nombre: normalizeValue(row.getCell(11).value) },
-                    siniestro: { numero: normalizeValue(row.getCell(12).value) },
-                    fechaSiniestro: normalizeValue(row.getCell(13).value),
-                    poliza: normalizeValue(row.getCell(14).value),
-                    ramo: normalizeValue(row.getCell(15).value),
-                    amparo: normalizeValue(row.getCell(16).value),
-                    numeroAplicativo: normalizeValue(row.getCell(17).value),
-                    ciudad: normalizeValue(row.getCell(18).value),
-                    juzgadoInt: { nombre: normalizeValue(row.getCell(19).value) },
-                    radicado: normalizeValue(row.getCell(20).value),
-                    parteActiva: normalizeValue(row.getCell(21).value),
-                    partePasiva: normalizeValue(row.getCell(22).value),
-                    tipoDeTramite: normalizeValue(row.getCell(23).value),
-                    claseDeProceso: normalizeValue(row.getCell(24).value),
-                    tipoDeVinculacionCliente: normalizeValue(row.getCell(25).value),
-                    pretensionesEnDinero: normalizeValue(row.getCell(26).value),
-                    calificacionInicialContingencia: normalizeValue(row.getCell(27).value),
-                    calificacionActualContingencia: normalizeValue(row.getCell(28).value),
-                    motivoDeLaCalificacion: normalizeValue(row.getCell(29).value),
-                    fechaAdmisionVinculacion: normalizeValue(row.getCell(30).value),
-                    fechaDeNotificacion: normalizeValue(row.getCell(31).value),
-                    instancia: normalizeValue(row.getCell(32).value),
-                    etapaProcesal: normalizeValue(row.getCell(33).value),
-                    claseDeMedidaCautelar: normalizeValue(row.getCell(34).value),
-                    honorariosAsignados: normalizeValue(row.getCell(35).value),
-                    autoridadDeConocimiento: normalizeValue(row.getCell(36).value),
-                    delito: normalizeValue(row.getCell(37).value),
-                    placa: normalizeValue(row.getCell(38).value),
-                    evento: normalizeValue(row.getCell(39).value),
-                    probabilidadDeExito: normalizeValue(row.getCell(40).value),
-                    valorIndemnizadoCliente: normalizeValue(row.getCell(41).value),
-                    entidadAfectada: normalizeValue(row.getCell(42).value),
-                    fechaDePagoCliente: normalizeValue(row.getCell(43).value),
-                    tipoContragarantia: normalizeValue(row.getCell(44).value),
-                    montoDeProvision: normalizeValue(row.getCell(45).value),
-                    tipoDeMoneda: normalizeValue(row.getCell(46).value),
-                    fechaDeTerminacion: normalizeValue(row.getCell(47).value),
-                    motivoDeTerminacion: normalizeValue(row.getCell(48).value),
-                    cliente2: { nombre: normalizeValue(row.getCell(49).value) },
-                    fechaDeAsignacion2: normalizeValue(row.getCell(50).value),
-                    abogadoInternoDeLaCompania2: { nombre: normalizeValue(row.getCell(51).value) },
-                    siniestro2: { numero: normalizeValue(row.getCell(52).value) },
-                    numeroDeAplicativo2: normalizeValue(row.getCell(53).value),
-                    fechaDeNotificacion2: normalizeValue(row.getCell(54).value),
-                    seInicioEjecutivoAContinuacionDeOrdinario: normalizeValue(row.getCell(55).value),
-                    honorariosAsignados2: normalizeValue(row.getCell(56).value),
-                    valorPagado: normalizeValue(row.getCell(57).value),
-                    personaQueRealizoElPago: normalizeValue(row.getCell(58).value),
-                    fechaDeRadicacionDeLaContestacion: normalizeValue(row.getCell(59).value),
-                    fechaDeRadicacionDeLaContestacion2: normalizeValue(row.getCell(60).value),
-                    departamento: normalizeValue(row.getCell(62).value),
-                    asegurado: normalizeValue(row.getCell(63).value),
-                    jurisdiccion: normalizeValue(row.getCell(64).value),
-                    juzgado: { nombre: normalizeValue(row.getCell(64).value) },
-                    fechaUltimaActuacion: new Date(row.getCell(65).value).toLocaleDateString('es-ES'),
-                    tituloUltimaActuacion: normalizeValue(row.getCell(66).value)
-                };
-                rows.push(rowData);
-            });
+                                // Espera a que la llamada Axios se complete antes de continuar
+                                const response = await Axios('POST', 'casos/crear', res.data.casos[index]);
+                                casoGuardado += ' | ' + response.data.numero;
+                                console.log(response.data);
+                                setValor(index + 1);
+                                setPorcentaje(((index + 1) / res.data.casos.length) * 100);
+                                // Actualiza el estado de correctos
+                                setCorrectos((prevCorrectos) => prevCorrectos + 1);
+                            } catch (err) {
+                                console.log(err);
 
-            const largo = rows.length - 1
-            setTotales(rows.length)
-            console.log(rows)
-            if (rows.length < 1) {
-                console.error('No data found in the worksheet!');
-                Swal.fire({
-                    title: "¡Atención!",
-                    text: "El archivo Excel no contiene datos. Asegúrate de que la hoja de Excel llamada 'Procesos' tenga información.",
-                    icon: "warning"
-                });
-                setPorcentaje(0);
-                setValor(0);
-                setTotales(0);
-                setFile(false);
-                return;
-            }
-            setLoader(true)
-            for (let i = 0; i < rows.length; i++) {
-                console.log(rows[i])
-                try {
-                    const res = await Axios('POST', 'casos/crear', rows[i]);
-                    console.log(`Caso ${i + 1} agregado:`, res.data);
-                    setPorcentaje(((i + 1) / (largo + 1)) * 100)
-                    setValor(i + 1)
-                    if (i == largo) {
-                        Swal.fire({
-                            title: "Importación Finalizada",
-                            text: "Listo",
-                            icon: "success"
-                        })
-                        setPorcentaje(0)
-                        setValor(0)
-                        setTotales(0)
-                        setFile(false)
+                                // Actualiza el estado de incorrectos
+                                setIncorrectos((prevIncorrectos) => prevIncorrectos + 1);
+                            }
+                        }
 
+                        // Desactiva el loader después de que todas las operaciones hayan terminado
+                        setLoader(false);
+
+                    } else if (result.isDenied) {
+                        window.location.href = '/mas-informacion.html'
 
                     }
-                    // Puedes mostrar una notificación por cada caso
-                } catch (err) {
-                    console.error(`Error al agregar caso ${i + 1}:`, err);
-                    // Puedes manejar errores individuales aquí
-                    Swal.fire({
-                        title: `Error en el caso ${i + 1}`,
-                        text: err.message,
-                        icon: "error"
-                    });
-                }
-                if (i == largo) setLoader(false)
-            }
-        };
-        reader.readAsArrayBuffer(file);
+                })
+                setLoader(false)
+            })
+            .catch(err => {
+                console.log(err)
+                setLoader(false)
+                Swal.fire({
+                    title: "<strong>Verifica la hoja de Excel</strong>",
+                    icon: "warning",
+                    html: `
+                        <div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                            <p style="font-size: 16px; color: #333; text-align: center;">
+                                
+                                ${err.response.data.message}
+                            </p>
+                            <img src="/errorProcesosEcxel.png" alt="Imagen de error" width='500px' style="margin-bottom: 20px;" />
+                            <a href="/mas-informacion.html" style="text-decoration: none;">
+                                <button style="
+                                    background-color: #007bff; 
+                                    color: white; 
+                                    border: none; 
+                                    border-radius: 4px; 
+                                    padding: 10px 20px; 
+                                    font-size: 16px; 
+                                    cursor: pointer; 
+                                    margin-top: 10px;
+                                ">
+                                    Más Información
+                                </button>
+                            </a>
+                        </div>
+                    `,
+                    showCloseButton: true,
+                    showCancelButton: false,
+                    focusConfirm: false,
+                    confirmButtonText: 'Entendido',
+                });
+
+            })
     };
+
+    // Maneja el arrastre del archivo sobre el contenedor
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        setDragging(true);
+    };
+
+    // Cuando el archivo sale del área de arrastre
+    const handleDragLeave = () => {
+        setDragging(false);
+    };
+
+    // Maneja el evento cuando se suelta el archivo en el contenedor
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setDragging(false);
+        const droppedFile = e.dataTransfer.files[0];
+        setFile(droppedFile);
+    };
+
     return (
         <div className="dashboard-container">
             <Navigation />
-            <div className="upload-container">
+            <div
+                className={`upload-container ${dragging ? 'dragging' : ''}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+            >
                 <div className="upload-box">
-                    <input id="file-upload" type="file" accept=".xlsx" onChange={handleFileChange} />
                     <label htmlFor="file-upload" className="upload-label">
+                        <input
+                            id="file-upload"
+                            type="file"
+                            accept=".xlsx"
+                            onChange={handleFileChange}
+                        />
                         <div className="upload-icon">⬆️</div>
                         {file ? (
-                            <>
-                                <p className="upload-text">Archivo Cargado</p>
-                            </>
+                            <p className="upload-text">Archivo Cargado: {file.name}</p>
                         ) : (
-                            <p className="upload-text">Seleccionar el archivo de Excel</p>
+                            <p className="upload-text">
+                                Arrastra y suelta archivos de excel
+                            </p>
                         )}
                         {file && (
                             <>
                                 {loader ? (
-                                    <div className="loader-container">
-                                        <div className="loader"></div>
-                                    </div>
+                                    <>
+                                        <div className="loader-container">
+                                            <div className="loader"></div>
+                                        </div>
+                                        <h5>
+                                            Total de Casos: <strong className='total'>{totales} </strong>
+                                            Correctos: <strong className='corectos'>{correctos} </strong>
+                                            Incorrectos: <strong className='incorrectos'>{incorrectos} </strong>
+                                        </h5>
+                                    </>
                                 ) : (
-                                    <button onClick={handleImport} className='select-file-btn'>Importar</button>
+                                    <button
+                                        onClick={(e) => handleImport(e)}
+                                        className="select-file-btn"
+                                    >
+                                        Importar
+                                    </button>
                                 )}
                             </>
                         )}
                     </label>
-
                 </div>
             </div>
             {file && (
                 <>
                     <progress id="file" max={totales} value={valor}></progress>
-                    <div className="progress-text">{porcentaje.toFixed(2)}%</div>
+                    <div className="progress-text">{porcentaje}%</div>
                 </>
             )}
         </div>

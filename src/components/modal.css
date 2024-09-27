@@ -27,4 +27,10 @@
 form {
     max-height: 400px;
     overflow-y: scroll;
+    padding-left: 10px;
+}
+
+
+.center-text{
+    text-align: center;
 }

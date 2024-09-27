@@ -27,16 +27,6 @@ const useAxios = (metodo, url, data) => {
             .then(doc => resolve(doc))
             .catch(err =>  reject(err))
         }
-        if (metodo === 'POSTFILE') {
-          axios.post(API_REST,  data , {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              'authorization': JSON.stringify(token)
-            }
-          })
-            .then(doc => resolve(doc))
-            .catch(err =>  reject(err))
-        }
         if (metodo === 'DELETE') {
           axios.delete(API_REST, {
             headers: {

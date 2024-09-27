@@ -1,11 +1,11 @@
 import { useState } from "react";
 import Axios from '../hooks/useAxios'
 import './comentarios.css'
-const Comentarios = ({ caso, setCasos, setCaso }) => {
-    const [comentarios, setComentarios] = useState(caso.comentarios || []);
+const Comentarios = ({ caso, setCasos, setCaso, casos, permiss }) => {
     const [nuevoComentario, setNuevoComentario] = useState('');
+    const [comentarios, setComentarios] = useState(caso.comentarios || [])
     const [loading, setLoading] = useState(false);
-
+    const [forceUpdate, setForceUpdate] = useState(0);
 
 
     const handleAddComentario = async () => {
@@ -17,7 +17,7 @@ const Comentarios = ({ caso, setCasos, setCaso }) => {
             const minutos = fechaActual.getMinutes().toString().padStart(2, '0');
             const segundos = fechaActual.getSeconds().toString().padStart(2, '0');
             const amPm = horas >= 12 ? 'PM' : 'AM';
-            
+
             const dia = fechaActual.getDate().toString().padStart(2, '0');
             const mes = (fechaActual.getMonth() + 1).toString().padStart(2, '0'); // Los meses empiezan desde 0
             const año = fechaActual.getFullYear();
@@ -26,7 +26,7 @@ const Comentarios = ({ caso, setCasos, setCaso }) => {
 
             const horaActual = `${horas}:${minutos}:${segundos} ${amPm}`;
             const fecha = `${dia}/${mes}/${año}`;
-            
+
             const caseData = {
                 comentarios: [
                     {
@@ -37,19 +37,20 @@ const Comentarios = ({ caso, setCasos, setCaso }) => {
                     }
                 ]
             }
-            Axios('POST', `casos/actualizar/${caso._id}/`,caseData)
-            .then(res => {
-                console.log(res)
-                setComentarios(res.data.caso.comentarios)
-                setCaso(res.data.caso)
-                setCasos(res.data.casos)
-                
-
-            })
-            .catch(err => {
-                console.log(err)
-            })
-
+            const cometariosOriginales = [...comentarios]
+            comentarios.push(caseData.comentarios[0])
+            setForceUpdate(forceUpdate + 1) // fuerza al renderizado sin esto no actualiza el renderizado y no muestra el nuevo comentario proviciaonal
+            setNuevoComentario('')
+            Axios('POST', `casos/actualizar/${caso._id}/`, caseData)
+                .then(res => {
+                    console.log(res.data.caso.comentarios)
+                    setComentarios(res.data.caso.comentarios)
+                    
+                })
+                .catch(err => {
+                    console.log(err)
+                    setComentarios(cometariosOriginales)
+                })
         } catch (error) {
             console.error('Error adding comment:', error);
         }
@@ -57,16 +58,24 @@ const Comentarios = ({ caso, setCasos, setCaso }) => {
 
     const handleDeleteComentario = async (id) => {
         try {
+
+            const comentariosPrevios = [...comentarios];
+
+            // Filtrar para eliminar el comentario localmente
+            const comentariosActualizados = comentarios.filter(comentario => comentario._id !== id);
+
+            // Actualizar el estado provisionalmente
+            setComentarios(comentariosActualizados);
+            setForceUpdate(forceUpdate + 1);
             Axios('DELETE', `casos/${caso._id}/comentarios/${id}`)
-            .then(res => {
-                console.log(res.data.casos)
-                setCasos(res.data.casos)
-                setComentarios(res.data.caso.comentarios)
-                setCaso(res.data.caso)
-            })
-            .catch(err => {
-                console.log(err)
-            })
+                .then(res => {
+                    console.log(res.data)
+                    setCaso({...caso, comentarios: comentariosActualizados})
+                })
+                .catch(err => {
+                    console.log(err)
+                    setComentarios(comentariosPrevios)
+                })
         } catch (error) {
             console.error('Error deleting comment:', error);
         }
@@ -108,18 +117,27 @@ const Comentarios = ({ caso, setCasos, setCaso }) => {
                                     </div>
                                 </div>
                                 <p className="comentario-text">{comentario.texto}</p>
-                                <button className="comentario-button" onClick={() => handleDeleteComentario(comentario._id)}>Eliminar</button>
+                                {
+                                    permiss === 'admin' && (
+                                        
+                                            comentario._id && (
+                                                <button className="comentario-button" onClick={() => handleDeleteComentario(comentario._id)}>Eliminar</button>
+                                            )
+                                        
+                                    )
+                                }
+                                
                             </li>
                         ))}
                     </ul>
 
                     <div className="input-container ">
-                        <textarea
+                        <input
                             type="text"
                             value={nuevoComentario}
                             onChange={(e) => setNuevoComentario(e.target.value)}
                             placeholder="Agregar un nuevo comentario"
-                        ></textarea>
+                        />
                         <button className="excel-button" onClick={handleAddComentario}>Agregar Comentario</button>
                     </div>
                 </>

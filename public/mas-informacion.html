@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instrucciones para Archivo Excel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1,
+        h2 {
+            color: #007bff;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            margin-top: 20px;
+        }
+
+        p {
+            margin-bottom: 10px;
+        }
+
+        .error {
+            background-color: #ffdddd;
+            border-left: 5px solid #ff4d4d;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
+        .example {
+            background-color: #e7f1ff;
+            border-left: 5px solid #007bff;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
+        .button-container {
+            text-align: center;
+        }
+
+        .button-container a {
+            text-decoration: none;
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            display: inline-block;
+        }
+
+        .button-container a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Instrucciones para el Archivo Excel</h1>
+        <p>Para asegurar que los datos del archivo Excel se procesen correctamente y se agreguen a la base de datos,
+            sigue las siguientes instrucciones:</p>
+
+        <h2>1. Nombre de la Hoja</h2>
+        <p>La hoja del archivo Excel debe llamarse <b>'Procesos'</b>. Asegúrate de que el nombre de la hoja coincida
+            exactamente con este.</p>
+
+        <h2>2. Encabezados de las Columnas</h2>
+        <p>Los encabezados en la primera fila del archivo deben coincidir exactamente con los nombres especificados a
+            continuación. No se deben agregar, omitir ni modificar caracteres o palabras en los encabezados para
+            garantizar la correcta importación y procesamiento de los datos.
+        </p>
+        <div class="example">
+            <p><b>Ejemplo de Encabezados:</b></p>
+            <ul>
+                <li>n°</li>
+                <li>código</li>
+                <li>título</li>
+                <li>cliente</li>
+                <li>asunto</li>
+                <li>área</li>
+                <li>fecha de asignación</li>
+                <li>centro de trabajo</li>
+                <li>director a cargo</li>
+                <li>abogado a cargo</li>
+                <li>abogado interno de la compañía</li>
+                <li>número de siniestro</li>
+                <li>fecha del siniestro</li>
+                <li>póliza</li>
+                <li>ramo</li>
+                <li>amparo</li>
+                <li>número de aplicativo</li>
+                <li>ciudad</li>
+                <li>juzgado int</li>
+                <li>radicado</li>
+                <li>parte activa</li>
+                <li>parte pasiva</li>
+                <li>tipo de trámite</li>
+                <li>clase de proceso</li>
+                <li>tipo de vinculación cliente</li>
+                <li>pretensiones en dinero</li>
+                <li>calificación inicial contingencia</li>
+                <li>calificación actual contingencia</li>
+                <li>motivo de la calificación</li>
+                <li>fecha admisión/vinculación</li>
+                <li>fecha de notificación</li>
+                <li>instancia</li>
+                <li>etapa procesal</li>
+                <li>clase de medida cautelar</li>
+                <li>honorarios asignados</li>
+                <li>autoridad de conocimiento</li>
+                <li>delito</li>
+                <li>placa</li>
+                <li>evento</li>
+                <li>probabilidad de éxito</li>
+                <li>valor indemnizado cliente</li>
+                <li>entidad afectada</li>
+                <li>fecha de pago cliente</li>
+                <li>tipo contragarantía (pagaré/letra)</li>
+                <li>monto de provisión</li>
+                <li>tipo de moneda</li>
+                <li>fecha de terminación</li>
+                <li>motivo de terminación</li>
+                <li>cliente 2</li>
+                <li>fecha de asignación 2</li>
+                <li>abogado interno de la compañía 2</li>
+                <li>número de siniestro 2</li>
+                <li>número de aplicativo 2</li>
+                <li>fecha de notificación 2</li>
+                <li>se inició ejecutivo a continuación de ordinario</li>
+                <li>honorarios asignados 2</li>
+                <li>valor pagado</li>
+                <li>persona que realizó el pago</li>
+                <li>fecha de radicación de la contestación</li>
+                <li>fecha de radicación de la contestación 2</li>
+                <li>departamento</li>
+                <li>asegurado</li>
+                <li>jurisdicción</li>
+                <li>juzgado</li>
+                <li>fecha última actuación</li>
+                <li>título última actuación</li>
+                <li>fecha que realizó el pago</li>
+                <li>código interno</li>
+            </ul>
+        </div>
+
+
+        <h2>Errores Comunes</h2>
+        <div class="error">
+            <p><b>Error:</b> La hoja no se llama 'Procesos'.</p>
+            <p><b>Solución:</b> Asegúrate de que la hoja de cálculo esté nombrada como <b>'Procesos'</b>.</p>
+        </div>
+        <div class="error">
+            <p><b>Error:</b> Encabezados incorrectos en la hoja.</p>
+            <p><b>Solución:</b> Verifica que todos los encabezados de columna estén presentes y sean correctos.</p>
+        </div>
+
+        <div class="button-container">
+            <a href="javascript:history.back()">Volver a Intentar</a>
+        </div>
+    </div>
+</body>
+
+</html>

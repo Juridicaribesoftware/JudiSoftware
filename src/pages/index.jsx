@@ -4,140 +4,95 @@ import { useState, useEffect } from 'react'
 import Axios from '../hooks/useAxios'
 import CaseForm from '../components/caseForm'
 import { useNavigate } from 'react-router-dom'
-import exportToExcel from '../hooks/useDescargarExcel'
 import useDebounce from '../hooks/useDebounce'
 import FieldSelectorModal from '../components/modal'
-export const Home = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedFields, setSelectedFields] = useState([]);
-    const allFields = [
-        'numero', 'codigo', 'titulo', 'cliente.nombre', 'asunto', 'area', 'fechaDeAsignacion',
-        'centroDeTrabajo', 'directorACargo.nombre', 'abogadoACargo.nombre', 'abogadoInternoDeLaCompania.nombre',
-        'siniestro.numero', 'fechaSiniestro', 'poliza', 'ramo', 'amparo', 'numeroAplicativo', 'ciudad',
-        'juzgadoInt.nombre', 'radicado', 'parteActiva', 'partePasiva', 'tipoDeTramite', 'claseDeProceso',
-        'tipoDeVinculacionCliente', 'pretensionesEnDinero', 'calificacionInicialContingencia',
-        'calificacionActualContingencia', 'motivoDeLaCalificacion', 'fechaAdmisionVinculacion',
-        'fechaDeNotificacion', 'instancia', 'etapaProcesal', 'claseDeMedidaCautelar', 'honorariosAsignados',
-        'autoridadDeConocimiento', 'delito', 'placa', 'evento', 'probabilidadDeExito', 'valorIndemnizadoCliente',
-        'entidadAfectada', 'fechaDePagoCliente', 'tipoContragarantia', 'montoDeProvision', 'tipoDeMoneda',
-        'fechaDeTerminacion', 'motivoDeTerminacion', 'cliente2', 'fechaDeAsignacion2',
-        'abogadoInternoDeLaCompania2', 'siniestro2.numero', 'numeroDeAplicativo2', 'fechaDeNotificacion2',
-        'seInicioEjecutivoAContinuacionDeOrdinario', 'honorariosAsignados2', 'valorPagado',
-        'personaQueRealizoElPago', 'fechaDeRadicacionDeLaContestacion', 'fechaDeRadicacionDeLaContestacion2',
-        'departamento', 'asegurado', 'jurisdiccion', 'juzgado.nombre', 'fechaUltimaActuacion',
-        'tituloUltimaActuacion'
-    ];
-    const [user, setUser] = useState(localStorage.getItem('usuario'))
+import { saveAs } from 'file-saver'
+import ExcelJS from 'exceljs'
+
+
+export const Home = ({ unique }) => {
+
+    //const arrys
     const [casos, setCasos] = useState([])
+
+    //conts loader
+    const [loader, setLoader] = useState(false)
+
+    // const paginacion
+    const [totalCasos, setTotalCasos] = useState(0)
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const recordsPerPage = 5;
+
+    //const para modals o fractmebtos ocultos
+    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [isFormOpen, setIsFormOpen] = useState(false)
     const [filtrar, setFiltrar] = useState(false)
+    //CaseFrom props
+
+    //Modal Pros
+    const [cuantos, setCuantos] = useState(null)
+    const [mostrar, setMostrar] = useState([])
+    const [casoId, setCasoId] = useState({})
+
+
+    const [user, setUser] = useState(localStorage.getItem('usuario'))
+    //coincidencias
     const [proceso, setProceso] = useState('')
+
+    //filtro avanzado
     const [cliente, setCliente] = useState('')
     const [area, setArea] = useState('')
     const [centroTrabajo, setCentroTrabajo] = useState('')
-    const [centroTrabajos, setCentroTrabajos] = useState('')
     const [abogado, setAbogado] = useState('')
-    const [abogadocs, setAbogadocs] = useState('')
     const [claseDeProceso, setClaseDeProceso] = useState('')
-    const [claseDeProcesos, setClaseDeProcesos] = useState('')
     const [ciudad, setCiudad] = useState('')
-    const [ciudades, setCiudades] = useState('')
     const [fechaFin, setFechaFin] = useState('')
-    const [clientes, setClientes] = useState('')
-    const [areas, setAreas] = useState([])
-    const [isFormOpen, setIsFormOpen] = useState(false)
-    const [caso, setCaso] = useState({})
-    const [currentPage, setCurrentPage] = useState(1)
-    const casesPerPage = 5
-    const [loader, setLoader] = useState(true)
-    const debouncedProceso = useDebounce(proceso, 600)
-    const [cuantos, setCuantos] = useState(null)
-    const [mostrar , setMostrar]= useState([])
+
+    //retraso paea la busqueda en la barra
+    const debouncedProceso = useDebounce(proceso, 1000)
     const navigate = useNavigate()
+
+
     useEffect(() => {
-        Axios('GET', 'casos/', null)
-            .then((res) => {
-                const casosInverted = res.data.reverse(); // Invierte los datos aquí
-                setCasos(casosInverted);
-                setAreas(getUnique(res.data, 'area'))
-                setCentroTrabajos(getUnique(res.data, 'centroDeTrabajo'))
-                setClientes(getUnique(res.data, 'cliente'))
-                setAbogadocs(getUnique(res.data, 'abogadoACargo'))
-                setClaseDeProcesos(getUnique(res.data, 'claseDeProceso'))
-                setCiudades(getUnique(res.data, 'ciudad'))
-                setLoader(false)
-                console.log(res.data)
-            })
-            .catch((err) => {
-                console.log(err)
-            })
-    }, [])
+        handleSearch(currentPage)
+    }, [currentPage])
+
+    //para la busqueda automatica
     useEffect(() => {
         if (debouncedProceso) {
-            handleSearch();
+            handleSearch(1)
+            setCurrentPage(1)
         }
     }, [debouncedProceso]);
-    const getUnique = (array, key) => {
-        return array.reduce((acc, item) => {
-            const value = item[key];
 
-            // Si el valor es un objeto, compara por _id
-            if (typeof value === 'object' && value !== null) {
-                if (!acc.find(obj => obj._id === value._id)) {
-                    acc.push(value);
-                }
-            }
-            // Si el valor es una cadena, verifica directamente
-            else if (typeof value === 'string') {
-                if (!acc.includes(value)) {
-                    acc.push(value);
-                }
-            }
-
-            return acc;
-        }, []);
-    }
-    const indexOfLastCase = currentPage * casesPerPage
-    const indexOfFirstCase = indexOfLastCase - casesPerPage
-    const currentCases = casos.slice(indexOfFirstCase, indexOfLastCase)
-
-    const totalPages = Math.ceil(casos.length / casesPerPage)
-
-    const handleNext = () => {
-        if (currentPage < totalPages) {
-            setCurrentPage(currentPage + 1)
-        }
+    //Abrir la seccion de filtrar
+    const handleOpenFiltar = () => {
+        setFiltrar(!filtrar)
     }
 
-    const handlePrevious = () => {
-        if (currentPage > 1) {
-            setCurrentPage(currentPage - 1)
-        }
-    }
-
-    const handleCheckboxChange = (e) => {
-        setFiltrar(e.target.checked)
-    }
-    const handleSearch = () => {
-        setLoader(true)
+    const handleSearch = (currentPage) => {
         let data = {}
-
-
         if (filtrar) {
+            setLoader(true)
             if (cliente) data.cliente = cliente;
             if (area) data.area = area;
-            if (centroTrabajo) data.centroTrabajo = centroTrabajo;
+            if (centroTrabajo) data.centroDeTrabajo = centroTrabajo;
             if (abogado) data.abogadoACargo = abogado;
             if (claseDeProceso) data.claseDeProceso = claseDeProceso;
             if (ciudad) data.ciudad = ciudad;
             if (fechaFin) data.fechaDeTerminacion = fechaFin;
-
-            Axios('POST', 'casos/caso', data)
+            Axios('POST', `casos?page=${currentPage}&limit=${recordsPerPage}&coincidencias=${proceso}`, data)
                 .then((res) => {
-                    setCasos(res.data)
+
+                    setCasos(res.data.data)
+                    setTotalPages(res.data.totalPages)
+                    setTotalCasos(res.data.totalCasos)
                     setLoader(false)
                 })
                 .catch((err) => {
                     console.log('Error al enviar:', err.response.data)
+                    setLoader(false)
                     if (err.response.data.message == 'Acceso Denegado') {
                         navigate('/')
                         Swal.fire({
@@ -148,15 +103,18 @@ export const Home = () => {
                     }
                 })
         } else {
-
-            Axios('POST', 'casos/casoAll', proceso)
+            setLoader(true)
+            Axios('POST', `casos?page=${currentPage}&limit=${recordsPerPage}&coincidencias=${proceso}`, null)
                 .then((res) => {
-                    
-                    setCasos(res.data)
+
+                    setCasos(res.data.data)
+                    setTotalPages(res.data.totalPages)
+                    setTotalCasos(res.data.totalCasos)
                     setLoader(false)
                 })
                 .catch((err) => {
                     console.log('Error al enviar:', err.response.data)
+                    setLoader(false)
                     if (err.response.data.message == 'Acceso Denegado') {
                         navigate('/')
                         Swal.fire({
@@ -170,20 +128,148 @@ export const Home = () => {
         }
 
     }
-    const openForm = (casoV) => {
-        setCaso(casoV)
+    const openForm = (casoId) => {
+        setCasoId(casoId)
         setIsFormOpen(true)
     }
 
     const closeForm = () => {
         setIsFormOpen(false);
     }
+
+    const exportToExcel = (data) => {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Procesos');
+        const fieldMap = {
+            "n°": "numero",
+            "código": "codigo",
+            "título": "titulo",
+            "cliente": "cliente",
+            "asunto": "asunto",
+            "área": "area",
+            "fecha de asignación": "fechaDeAsignacion",
+            "centro de trabajo": "centroDeTrabajo",
+            "director a cargo": "directorACargo",
+            "abogado a cargo": "abogadoACargo",
+            "abogado interno de la compañía": "abogadoInternoDeLaCompania",
+            "número de siniestro": "siniestro",
+            "fecha del siniestro": "fechaSiniestro",
+            "póliza": "poliza",
+            "ramo": "ramo",
+            "amparo": "amparo",
+            "número de aplicativo": "numeroAplicativo",
+            "ciudad": "ciudad",
+            "juzgado int": "juzgadoInt",
+            "radicado": "radicado",
+            "parte activa": "parteActiva",
+            "parte pasiva": "partePasiva",
+            "tipo de trámite": "tipoDeTramite",
+            "clase de proceso": "claseDeProceso",
+            "tipo de vinculación cliente": "tipoDeVinculacionCliente",
+            "pretensiones en dinero": "pretensionesEnDinero",
+            "calificación inicial contingencia": "calificacionInicialContingencia",
+            "calificación actual contingencia": "calificacionActualContingencia",
+            "motivo de la calificación": "motivoDeLaCalificacion",
+            "fecha admisión/vinculación": "fechaAdmisionVinculacion",
+            "fecha de notificación": "fechaDeNotificacion",
+            "instancia": "instancia",
+            "etapa procesal": "etapaProcesal",
+            "clase de medida cautelar": "claseDeMedidaCautelar",
+            "honorarios asignados": "honorariosAsignados",
+            "autoridad de conocimiento": "autoridadDeConocimiento",
+            "delito": "delito",
+            "placa": "placa",
+            "evento": "evento",
+            "probabilidad de éxito": "probabilidadDeExito",
+            "valor indemnizado cliente": "valorIndemnizadoCliente",
+            "entidad afectada": "entidadAfectada",
+            "fecha de pago cliente": "fechaDePagoCliente",
+            "tipo contragarantía (pagaré/letra)": "tipoContragarantia",
+            "monto de provisión": "montoDeProvision",
+            "tipo de moneda": "tipoDeMoneda",
+            "fecha de terminación": "fechaDeTerminacion",
+            "motivo de terminación": "motivoDeTerminacion",
+            "cliente 2": "cliente2",
+            "fecha de asignación 2": "fechaDeAsignacion2",
+            "abogado interno de la compañía 2": "abogadoInternoDeLaCompania2",
+            "número de siniestro 2": "siniestro2",
+            "número de aplicativo 2": "numeroDeAplicativo2",
+            "fecha de notificación 2": "fechaDeNotificacion2",
+            "se inició ejecutivo a continuación de ordinario": "seInicioEjecutivoAContinuacionDeOrdinario",
+            "honorarios asignados 2": "honorariosAsignados2",
+            "valor pagado": "valorPagado",
+            "persona que realizó el pago": "personaQueRealizoElPago",
+            "fecha de radicación de la contestación": "fechaDeRadicacionDeLaContestacion",
+            "fecha de radicación de la contestación 2": "fechaDeRadicacionDeLaContestacion2",
+            "departamento": "departamento",
+            "asegurado": "asegurado",
+            "jurisdicción": "jurisdiccion",
+            "juzgado": "juzgado",
+            "fecha última actuación": "fechaUltimaActuacion",
+            "título última actuación": "tituloUltimaActuacion",
+            "fecha que realizó el pago": "fechaQueRealizoElPago",
+            "código interno": "codigoInterno"
+        };
+
+        const headers = Object.keys(fieldMap)
+        const keys = Object.values(fieldMap)
+        // Añadir encabezados
+        const headerRow = worksheet.addRow(headers)
+        headerRow.eachCell((cell) => {
+            cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF007BFF' }
+            };
+            cell.font = {
+                bold: true,
+                color: { argb: 'FFFFFFFF' }, // Color blanco
+                size: 12,
+            };
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.value = cell.value.toString().toUpperCase(); // Convertir a mayúsculas
+        });
+        // Añadir datos, excluyendo el _id
+        data.forEach((row) => {
+            // Crear un objeto que solo contiene los campos seleccionados sin el _id
+            const rowData = keys.map(key => {
+                // Verificar si el valor es un objeto y extraer el nombre si aplica
+                const value = row[key];
+                if (typeof value === 'object' && value !== null) {
+                    if (key === 'cliente' || key === 'cliente2' || key === 'directorACargo' || key === 'abogadoACargo' || key === 'abogadoInternoDeLaCompania' || key === 'abogadoInternoDeLaCompania2' || key === 'juzgado' || key === 'juzgadoInt') {
+                        return value.nombre || '';
+                    }
+                    if (key === 'siniestro' || key === 'siniestro2') {
+                        return value.numero || '';
+                    }
+                }
+                return value !== undefined ? value : '';
+            });
+            worksheet.addRow(rowData);
+        });
+
+
+        worksheet.columns.forEach((column) => {
+            let maxLength = 0;
+            column.eachCell({ includeEmpty: true }, (cell) => {
+                const cellValueLength = cell.value ? cell.value.toString().length + 4 : 0;
+                maxLength = Math.max(maxLength, cellValueLength);
+            });
+            column.width = maxLength + 2; // Añadir un margen de espacio
+        });
+
+        // Formatear como archivo Excel
+        workbook.xlsx.writeBuffer().then((buffer) => {
+            const blob = new Blob([buffer], { type: 'application/octet-stream' });
+            saveAs(blob, 'casos.xlsx'); // Nombre del archivo que se descargará
+        });
+    };
     return (
         <>
             <div>
                 <Navigation />
                 {isFormOpen ? (
-                    <CaseForm caseData={caso}  setCaso = {setCaso} cerrar={closeForm} user={user}  casos ={casos}  setCasos = {setCasos}/>
+                    <CaseForm caseId={casoId} setCaso={setCasoId} cerrar={closeForm} user={user} casos={casos} setCasos={setCasos} />
                 ) : (
                     <div className="containerp">
 
@@ -200,21 +286,32 @@ export const Home = () => {
                                 <input
                                     type="checkbox"
                                     checked={filtrar}
-                                    onChange={handleCheckboxChange}
+                                    onChange={handleOpenFiltar}
                                 />
                             </label>
                             <div>
                                 <FieldSelectorModal
                                     isOpen={isModalOpen}
                                     onRequestClose={() => setIsModalOpen(false)}
-                                    fields={allFields}
-                                    onSelectFields={setSelectedFields}
                                     casos={casos}
-                                    mostrar = {mostrar}
+                                    mostrar={mostrar}
                                     cuantos={cuantos}
+                                    proceso={proceso}
+                                    cliente={cliente}
+                                    area={area}
+                                    centroTrabajo={centroTrabajo}
+                                    abogado={abogado}
+                                    claseDeProceso={claseDeProceso}
+                                    ciudad={ciudad}
+                                    fechaFin={fechaFin}
+                                    unique={unique}
                                 />
                             </div>
-                            <button className="search-button" onClick={handleSearch}>Buscar</button>
+                            <button className="search-button" onClick={() => {
+                                setCurrentPage(1)
+                                handleSearch(1)
+
+                            }}>Buscar</button>
                             <button onClick={() => {
                                 setIsModalOpen(true)
                                 setCuantos(true)
@@ -224,11 +321,12 @@ export const Home = () => {
                             <div id="custom-filter-container" className="custom-filter-container">
                                 <div className="filter-form">
                                     <h2>Filtro personalizado</h2>
+
                                     <div className="form-row">
                                         <label>Cliente:</label>
                                         <select value={cliente} onChange={(e) => setCliente(e.target.value)}>
                                             <option value="">Seleccione...</option>
-                                            {clientes.map(client => (
+                                            {unique.clientes.map(client => (
                                                 <option key={client._id} value={client._id}>{client.nombre}</option>
                                             ))}
                                         </select>
@@ -237,7 +335,7 @@ export const Home = () => {
                                         <label>Área:</label>
                                         <select value={area} onChange={(e) => setArea(e.target.value)}>
                                             <option value="">Seleccione...</option>
-                                            {areas.map(are => (
+                                            {unique.areas.map(are => (
                                                 <option key={are} value={are}>{are}</option>
                                             ))}
                                         </select>
@@ -246,7 +344,7 @@ export const Home = () => {
                                         <label>Centro de trabajo:</label>
                                         <select value={centroTrabajo} onChange={(e) => setCentroTrabajo(e.target.value)}>
                                             <option value="">Seleccione...</option>
-                                            {centroTrabajos.map(are => (
+                                            {unique.centrosDeTrabajo.map(are => (
                                                 <option key={are} value={are}>{are}</option>
                                             ))}
                                         </select>
@@ -255,7 +353,7 @@ export const Home = () => {
                                         <label>Abogado a Cargo:</label>
                                         <select value={abogado} onChange={(e) => setAbogado(e.target.value)}>
                                             <option value="">Seleccione...</option>
-                                            {abogadocs.map(usuario => (
+                                            {unique.abogadosACargo.map(usuario => (
                                                 <option key={usuario._id} value={usuario._id}> {usuario.nombre}</option>
                                             ))}
                                         </select>
@@ -264,7 +362,7 @@ export const Home = () => {
                                         <label>Clase de Proceso:</label>
                                         <select value={claseDeProceso} onChange={(e) => setClaseDeProceso(e.target.value)}>
                                             <option value="">Seleccione...</option>
-                                            {claseDeProcesos.map(are => (
+                                            {unique.clasesDeProceso.map(are => (
                                                 <option key={are} value={are}>{are}</option>
                                             ))}
                                         </select>
@@ -273,88 +371,134 @@ export const Home = () => {
                                         <label>Ciudad</label>
                                         <select value={ciudad} onChange={(e) => setCiudad(e.target.value)}>
                                             <option value="">Seleccione...</option>
-                                            {ciudades.map(are => (
+                                            {unique.ciudades.map(are => (
                                                 <option key={are} value={are}>{are}</option>
                                             ))}
                                         </select>
                                     </div>
                                     <div className="form-row">
-                                        <label>Fecha de terminación:</label>
+                                        <label>Fecha de terminacion:</label>
                                         <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
                                     </div>
                                 </div>
                             </div>
                         )}
-                        {loader ? (
-                            <div className="loader-container"><div className="loader"></div></div>
 
-                        ) : (
-                            <div className="table-wrapper">
-                                <div className="table-container">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>N°</th>
-                                                <th>TÍtulo</th>
-                                                <th>Cliente</th>
-                                                <th>Área</th>
-                                                <th>Centro De Trabajo</th>
-                                                <th>Abogado A Cargo</th>
-                                                <th>Opciones</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {currentCases.map((caso, index) => (
-                                                <tr key={index}>
-                                                    <td>{caso.numero ? caso.numero : 'No disponible'}</td>
-                                                    <td>{caso.titulo ? caso.titulo : 'No disponible'}</td>
-                                                    <td>{caso.cliente.nombre ? caso.cliente.nombre : 'No disponible'}</td>
-                                                    <td>{caso.area ? caso.area : 'No disponible'}</td>
-                                                    <td>{caso.centroDeTrabajo ? caso.centroDeTrabajo : 'No disponible'}</td>
-                                                    <td>{caso.abogadoACargo.nombre ? caso.abogadoACargo.nombre : 'No disponible'}</td>
-                                                    <td>
-                                                        <div className='conten-btn'>
-                                                            <button className='btn-g' onClick={() => openForm(caso)}><svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-eye" width="20" height="20" viewBox="0 0 24 24" strokeWidth="1.5" stroke="#00bfd8" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                                                <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
-                                                                <path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" />
-                                                            </svg></button>
-                                                            <button className='btn-g' onClick={() => {
-                                                                setIsModalOpen(true)
-                                                                setCuantos(false)
-                                                                setMostrar([caso])
-                                                            }}><svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-download" width="20" height="20" viewBox="0 0 24 24" strokeWidth="1.5" stroke="#00bfd8" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                                                    <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" />
-                                                                    <path d="M7 11l5 5l5 -5" />
-                                                                    <path d="M12 4l0 12" />
-                                                                </svg></button>
+                        <div className="table-wrapper">
+                            <div className="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>N°</th>
+                                            <th>Titulo</th>
+                                            <th>Cliente</th>
+                                            <th>Area</th>
+                                            <th>Centro De Trabajo</th>
+                                            <th>Abogado A Cargo</th>
+                                            <th>Opciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {
+                                            loader ? (
+                                                <tr>
+                                                    <td colSpan="7">
+                                                        <div className="loader-container">
+                                                            <span className="loader"></span>
                                                         </div>
                                                     </td>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
 
-                                <div className="pagination">
-                                    <button
-                                        onClick={handlePrevious}
-                                        className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                                        &laquo; Anterior
-                                    </button>
-                                    <span className="page-item active">
-                                        {currentPage}
-                                    </span>
-                                    <button
-                                        onClick={handleNext}
-                                        className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                                        Siguiente &raquo;
-                                    </button>
-                                </div>
+                                            ) : (
+
+                                                casos.map((caso, index) => (
+                                                    <tr key={index}>
+                                                        <td>{caso.numero ? caso.numero : 'No disponible'}</td>
+                                                        <td>{caso.titulo ? caso.titulo : 'No disponible'}</td>
+                                                        <td>{caso.cliente ? caso.cliente.nombre : 'No disponible'}</td>
+                                                        <td>{caso.area ? caso.area : 'No disponible'}</td>
+                                                        <td>{caso.centroDeTrabajo ? caso.centroDeTrabajo : 'No disponible'}</td>
+                                                        <td>{caso.abogadoACargo ? caso.abogadoACargo.nombre : 'No disponible'}</td>
+                                                        <td>
+                                                            <div className='conten-btn'>
+                                                                <button className='btn-g' onClick={() => openForm(caso)}><svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-eye" width="20" height="20" viewBox="0 0 24 24" strokeWidth="1.5" stroke="#00bfd8" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                                                    <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+                                                                    <path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" />
+                                                                </svg></button>
+                                                                <button className='btn-g' onClick={() => {
+                                                                    Swal.fire({
+                                                                        title: 'Descargando...',
+                                                                        text: 'Por favor espera mientras descargamos los datos.',
+                                                                        icon: 'info',
+                                                                        allowOutsideClick: false,
+                                                                        showConfirmButton: false,
+                                                                        didOpen: () => {
+                                                                            Swal.showLoading(); // Muestra el spinner de carga
+                                                                        },
+                                                                    });
+                                                                    Axios('GET', `casos/${caso._id}`, null)
+                                                                        .then(res => {
+                                                                            Swal.close();
+                                                                            exportToExcel([res.data.caso])
+                                                                            Swal.fire({
+                                                                                title: 'Completado',
+                                                                                text: 'La descarga se ha completado con éxito.',
+                                                                                icon: 'success',
+                                                                                confirmButtonText: 'Aceptar',
+                                                                            });
+                                                                        })
+                                                                        .catch(err => {
+                                                                            Swal.close();
+
+                                                                            // Mostrar un mensaje de error
+                                                                            Swal.fire({
+                                                                                title: 'Error',
+                                                                                text: 'Hubo un problema al descargar los datos.',
+                                                                                icon: 'error',
+                                                                                confirmButtonText: 'Aceptar',
+                                                                            });
+
+                                                                            console.log(err)
+                                                                        })
+                                                                }}><svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-download" width="20" height="20" viewBox="0 0 24 24" strokeWidth="1.5" stroke="#00bfd8" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                                                        <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" />
+                                                                        <path d="M7 11l5 5l5 -5" />
+                                                                        <path d="M12 4l0 12" />
+                                                                    </svg></button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+
+                                            )
+                                        }
+                                    </tbody>
+                                </table>
                             </div>
-                        )
-                        }
+
+                            <div className="pagination">
+                                <button
+                                    className={`page-item ${currentPage === 1 ? 'disabled' : ''}`} onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>
+                                    &laquo; Anterior
+                                </button>
+                                <span className="page-item active">
+                                    Página {currentPage} de {totalPages}
+                                </span>
+                                <span className="page-item active">
+                                    {totalCasos}
+                                </span>
+                                <button
+                                    className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`} onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages}>
+                                    Siguiente &raquo;
+                                </button>
+                            </div>
+
+                        </div>
+
+
+
 
                     </div>
                 )}

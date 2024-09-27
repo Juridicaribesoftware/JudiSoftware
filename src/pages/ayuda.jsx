@@ -136,13 +136,7 @@ const Ayuda = () => {
                                             <a href='https://vercel.com/'>Leer mas </a>
                                         </div>
                                     </div>
-                                    <div data-aos="fade-up" data-aos-anchor-placement="bottom-bottom">
-                                        <div className="cardc">
-                                            <div className='imagen_fl0 imagen'></div>
-                                            <h4>FL0</h4>
-                                            <a href='https://www.fl0.com/'>Leer mas </a>
-                                        </div>
-                                    </div>
+                                   
                                 </div>
                             </div>
                         </div>

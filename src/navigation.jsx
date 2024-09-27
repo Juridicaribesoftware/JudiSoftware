@@ -3,40 +3,58 @@ import { Link } from "react-router-dom"
 import Axios from './hooks/useAxios'
 import Cookies from "js-cookie"
 import './nav.css'
-const Navigation = () => {
+import Token from "./hooks/useToken"
+import { jwtDecode } from "jwt-decode";
+import globales from "./hooks/useGlobales"
+import CryptoJS from 'crypto-js'
 
- 
+const Navigation = () => {
+  const [permiss, setPermiss] = useState(null)
+  useEffect(() => {
+    if (Token('token-accses')) {
+      console.log(CryptoJS.AES.decrypt(Token('token-accses'), globales().SECRECT).toString(CryptoJS.enc.Utf8))
+      try {
+        const decoded = jwtDecode(CryptoJS.AES.decrypt(Token('token-accses'), globales().SECRECT).toString(CryptoJS.enc.Utf8));
+        setPermiss(decoded.usuario)
+      } catch (error) {
+        console.error('Error al decodificar el token:', error);
+      }
+    }else{
+      setPermiss(null)
+    }
+
+  }, [Token('token-accses')])
   function deleteAllCookies() {
     // Obtén todas las cookies
     const cookies = Cookies.get();
 
     // Recorre cada cookie y elimínala
     for (let name in cookies) {
-        if (cookies.hasOwnProperty(name)) {
-            Cookies.remove(name, { path: '' }); // Elimina la cookie para todas las rutas
-        }
+      if (cookies.hasOwnProperty(name)) {
+        Cookies.remove(name, { path: '' }); // Elimina la cookie para todas las rutas
+      }
     }
-}
+  }
 
   const logout = () => {
     deleteAllCookies()
   }
 
   return <nav>
-    <div className="logo">JUDISOFTWARE</div>
+    <div className="logo">ABOGADOSFM</div>
     <ul className="nav-links">
-      {localStorage.getItem('usuario') && (
+      {permiss && (
         <>
           <li><Link to='/home'>Casos</Link></li>
         </>
       )}
-      {localStorage.getItem('usuario') === 'admin' && (
+      {permiss === 'admin' && (
         <>
           <li><Link to='/dashboard'>Gestion</Link></li>
         </>
       )}
       <li><Link to='/ayuda'>Ayuda</Link></li>
-      {localStorage.getItem('usuario') && (
+      {permiss && (
         <>
           <li className="tooltip">
             <Link to='/landing' onClick={logout}>
@@ -56,11 +74,11 @@ const Navigation = () => {
                 <path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
                 <path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855" />
               </svg>
-              <span className="tooltiptext">{localStorage.getItem('usuario')}</span>
+              <span className="tooltiptext">{permiss}</span>
             </Link></li>
         </>
       )}
-      {localStorage.getItem('usuario') === '' && (
+      {permiss === null && (
         <>
           <li><Link to='/'><svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-login" width="20" height="20" viewBox="0 0 24 24" strokeWidth="1.5" stroke="#ffffff" fill="none" strokeLinecap="round" strokeLinejoin="round">
             <path stroke="none" d="M0 0h24v24H0z" fill="none" />

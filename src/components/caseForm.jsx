@@ -1,27 +1,49 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './caseForm.css'; // Estilos CSS externos
 import Axios from '../hooks/useAxios'
 import { useNavigate } from 'react-router-dom';
 import Comentarios from './comentarios';
-const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
-    const [formData, setFormData] = useState(caseData || {});
-    const [userd, setUserd] = useState(user);
+import { jwtDecode } from "jwt-decode";
+import globales from "../hooks/useGlobales"
+import CryptoJS from 'crypto-js'
+import Token from "../hooks/useToken"
+
+const CaseForm = ({ caseId, setCaso, cerrar, user, casos, setCasos }) => {
+    const [formData, setFormData] = useState({});
+    const [loader, setloader] = useState(false)
+
+
     const [mostrarComentarios, setMostrarComentarios] = useState(false)
     const navigate = useNavigate()
 
+    const [permiss, setPermiss] = useState(null)
+
+    useEffect(() => {
+        if (Token('token-accses')) {
+            console.log(CryptoJS.AES.decrypt(Token('token-accses'), globales().SECRECT).toString(CryptoJS.enc.Utf8))
+            try {
+                const decoded = jwtDecode(CryptoJS.AES.decrypt(Token('token-accses'), globales().SECRECT).toString(CryptoJS.enc.Utf8));
+                setPermiss(decoded.usuario)
+            } catch (error) {
+                console.error('Error al decodificar el token:', error);
+            }
+        } else {
+            setPermiss(null)
+        }
+
+    }, [Token('token-accses')])
+    useEffect(() => {
+        setloader(true)
+    }, [])
     // Función para obtener el valor del campo o un mensaje predeterminado
     const getFieldValue = (field) => {
-        return formData[field] ? formData[field] : '';
+        return formData[field] ? formData[field] : 'No disponible';
     };
 
     // Función para manejar la validación de campos anidados
     const getNestedFieldValue = (field, nestedField) => {
-        return formData[field] && formData[field][nestedField] ? formData[field][nestedField] : '';
+        return formData[field] && formData[field][nestedField] ? formData[field][nestedField] : 'No disponible';
     };
-
-    const cambioFecha = (fecha) => {
-        return fecha
-    }
 
     const eliminarCaso = (casoId) => {
         try {
@@ -69,6 +91,7 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
 
     return (
         <div className='conte'>
+
             <div className="form-container">
                 <div>
                     <button className='cerrar' onClick={() => cerrar()}>
@@ -79,7 +102,7 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
                             <path d="M5 12l6 -6" />
                         </svg>
                     </button>
-                    {localStorage.getItem('usuario') === 'admin' && (
+                    {permiss === 'admin' && (
                         <>
                             <button onClick={() => eliminarCaso(formData._id)} className='cerrar'>
                                 <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-trash" width="24" height="24" viewBox="0 0 24 24" strokeWidth="1.5" stroke="#00bfd8" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -91,6 +114,8 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
                                     <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
                                 </svg>
                             </button>
+
+
                         </>
                     )}
                     {
@@ -119,26 +144,35 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
                 </div>
                 {
 
-                    mostrarComentarios && (<Comentarios caso={caseData} setCaso={setCaso} setCasos={setCasos} />)
+                    mostrarComentarios && (<Comentarios caso={formData} setCaso={setFormData} setCasos={setCasos} casos={casos}  permiss = {permiss}/>)
                 }
-                <h1 className="form-title">INFORMACIÓN DEL CASO</h1>
+                {
+                    loader && (
+
+                        <div className="loader-container">
+                            <span className="loader"></span>
+                        </div>
+
+                    )
+                }
+                <h1 className="form-title">INFORMACION DEL CASO</h1>
                 <br />
                 <br />
                 <br />
                 <br />
                 <form className="case-form">
                     <div className="form-group">
-                        <label htmlFor="numero">NÚMERO</label>
+                        <label htmlFor="numero">NUMERO</label>
                         <label htmlFor="numero">{getFieldValue('numero')}</label>
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="codigo">CÓDIGO</label>
+                        <label htmlFor="codigo">CODIGO</label>
                         <label htmlFor="codigo">{getFieldValue('codigo')}</label>
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="titulo">TÍTULO</label>
+                        <label htmlFor="titulo">TITULO</label>
                         <label htmlFor="titulo">{getFieldValue('titulo')}</label>
                     </div>
 
@@ -153,13 +187,13 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="area">ÁREA</label>
+                        <label htmlFor="area">AREA</label>
                         <label htmlFor="area">{getFieldValue('area')}</label>
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="fechaDeAsignacion">FECHA DE ASIGNACIÓN</label>
-                        <label htmlFor="fechaDeAsignacion">{cambioFecha(getFieldValue('fechaDeAsignacion'))}</label>
+                        <label htmlFor="fechaDeAsignacion">FECHA DE ASIGNACION</label>
+                        <label htmlFor="fechaDeAsignacion">{getFieldValue('fechaDeAsignacion')}</label>
                     </div>
 
                     <div className="form-group">
@@ -183,17 +217,17 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="siniestro">NÚMERO DE SINIESTRO</label>
+                        <label htmlFor="siniestro">SINIESTRO</label>
                         <label htmlFor="siniestro">{getNestedFieldValue('siniestro', 'numero')}</label>
                     </div>
 
                     <div className="form-group">
                         <label htmlFor="fechaSiniestro">FECHA DE SINIESTRO</label>
-                        <label htmlFor="fechaSiniestro">{cambioFecha(getFieldValue('fechaSiniestro'))}</label>
+                        <label htmlFor="fechaSiniestro">{getFieldValue('fechaSiniestro')}</label>
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="poliza">PÓLIZA</label>
+                        <label htmlFor="poliza">POLIZA</label>
                         <label htmlFor="poliza">{getFieldValue('poliza')}</label>
                     </div>
 
@@ -208,7 +242,7 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="numeroAplicativo">NÚMERO DE APLICATIVO</label>
+                        <label htmlFor="numeroAplicativo">NUMERO DE APLICATIVO</label>
                         <label htmlFor="numeroAplicativo">{getFieldValue('numeroAplicativo')}</label>
                     </div>
 
@@ -238,7 +272,7 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
 
                     <div className="form-group">
                         <label htmlFor=" claseDeProceso">CLASE DE PROCESO</label>
-                        <label htmlFor=" claseDeProceso">{getFieldValue(' claseDeProceso')}</label>
+                        <label htmlFor=" claseDeProceso">{getFieldValue('claseDeProceso')}</label>
                     </div>
 
                     <div className="form-group">
@@ -248,7 +282,7 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
 
                     <div className="form-group">
                         <label htmlFor=" pretensionesEnDinero">PRETENSIONES EN DINERO</label>
-                        <label htmlFor=" pretensionesEnDinero">{getFieldValue(' pretensionesEnDinero')}</label>
+                        <label htmlFor=" pretensionesEnDinero">{getFieldValue('pretensionesEnDinero')}</label>
                     </div>
 
                     <div className="form-group">
@@ -268,12 +302,12 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
 
                     <div className="form-group">
                         <label htmlFor="fechaAdmisionVinculacion">FECHA ADMISIÓN/VINCULACIÓN</label>
-                        <label htmlFor="fechaAdmisionVinculacion">{cambioFecha(getFieldValue('fechaAdmisionVinculacion'))}</label>
+                        <label htmlFor="fechaAdmisionVinculacion">{getFieldValue('fechaAdmisionVinculacion')}</label>
                     </div>
 
                     <div className="form-group">
                         <label htmlFor="fechaDeNotificacion">FECHA DE NOTIFICACIÓN</label>
-                        <label htmlFor="fechaDeNotificacion">{cambioFecha(getFieldValue('fechaDeNotificacion'))}</label>
+                        <label htmlFor="fechaDeNotificacion">{getFieldValue('fechaDeNotificacion')}</label>
                     </div>
 
                     <div className="form-group">
@@ -333,7 +367,7 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
 
                     <div className="form-group">
                         <label htmlFor="fechaDePagoCliente">FECHA DE PAGO CLIENTE</label>
-                        <label htmlFor="fechaDePagoCliente">{cambioFecha(getFieldValue('fechaDePagoCliente'))}</label>
+                        <label htmlFor="fechaDePagoCliente">{getFieldValue('fechaDePagoCliente')}</label>
                     </div>
 
                     <div className="form-group">
@@ -353,7 +387,7 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
 
                     <div className="form-group">
                         <label htmlFor="fechaDeTerminacion">FECHA DE TERMINACIÓN</label>
-                        <label htmlFor="fechaDeTerminacion">{cambioFecha(getFieldValue('fechaDeTerminacion'))}</label>
+                        <label htmlFor="fechaDeTerminacion">{getFieldValue('fechaDeTerminacion')}</label>
                     </div>
 
                     <div className="form-group">
@@ -368,7 +402,7 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
 
                     <div className="form-group">
                         <label htmlFor="fechaDeAsignacion2">FECHA DE ASIGNACIÓN 2</label>
-                        <label htmlFor="fechaDeAsignacion2">{cambioFecha(getFieldValue('fechaDeAsignacion2'))}</label>
+                        <label htmlFor="fechaDeAsignacion2">{getFieldValue('fechaDeAsignacion2')}</label>
                     </div>
 
                     <div className="form-group">
@@ -388,7 +422,7 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
 
                     <div className="form-group">
                         <label htmlFor="fechaDeNotificacion2">FECHA DE NOTIFICACIÓN 2</label>
-                        <label htmlFor="fechaDeNotificacion2">{cambioFecha(getFieldValue('fechaDeNotificacion2'))}</label>
+                        <label htmlFor="fechaDeNotificacion2">{getFieldValue('fechaDeNotificacion2')}</label>
                     </div>
 
                     <div className="form-group">
@@ -413,12 +447,12 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
 
                     <div className="form-group">
                         <label htmlFor="fechaDeRadicacionDeLaContestacion">FECHA DE RADICACIÓN DE LA CONTESTACIÓN</label>
-                        <label htmlFor="fechaDeRadicacionDeLaContestacion">{cambioFecha(getFieldValue('fechaDeRadicacionDeLaContestacion'))}</label>
+                        <label htmlFor="fechaDeRadicacionDeLaContestacion">{getFieldValue('fechaDeRadicacionDeLaContestacion')}</label>
                     </div>
 
                     <div className="form-group">
                         <label htmlFor="fechaDeRadicacionDeLaContestacion2">FECHA DE RADICACIÓN DE LA CONTESTACIÓN 2</label>
-                        <label htmlFor="fechaDeRadicacionDeLaContestacion2">{cambioFecha(getFieldValue('fechaDeRadicacionDeLaContestacion2'))}</label>
+                        <label htmlFor="fechaDeRadicacionDeLaContestacion2">{getFieldValue('fechaDeRadicacionDeLaContestacion2')}</label>
                     </div>
 
                     <div className="form-group">
@@ -432,22 +466,22 @@ const CaseForm = ({ caseData, setCaso, cerrar, user, casos, setCasos }) => {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="jurisdiccion0">JURISDICCIÓN</label>
+                        <label htmlFor="jurisdiccion0">Jurisdicción</label>
                         <label htmlFor="jurisdiccion0">{getFieldValue('jurisdiccion0')}</label>
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="juzgado">JUZGADO</label>
+                        <label htmlFor="juzgado">Juzgado</label>
                         <label htmlFor="juzgado">{getNestedFieldValue('juzgado', 'nombre')}</label>
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="fechaUltimaActuacion">FECHA ÚLTIMA ACTUACIÓN</label>
-                        <label htmlFor="fechaUltimaActuacion">{cambioFecha(getFieldValue('fechaUltimaActuacion'))}</label>
+                        <label htmlFor="fechaUltimaActuacion">Fecha Última Actuación</label>
+                        <label htmlFor="fechaUltimaActuacion">{getFieldValue('fechaUltimaActuacion')}</label>
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor=" tituloUltimaActuacion">TÍTULO ÚLTIMA ACTUACIÓN</label>
+                        <label htmlFor=" tituloUltimaActuacion">Título Última Actuación</label>
                         <label htmlFor=" tituloUltimaActuacion">{getFieldValue('tituloUltimaActuacion')}</label>
                     </div>
 

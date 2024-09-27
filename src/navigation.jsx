@@ -41,7 +41,7 @@ const Navigation = () => {
   }
 
   return <nav>
-    <div className="logo">ABOGADOSFM</div>
+    <div className="logo">JUDISOFTWARE</div>
     <ul className="nav-links">
       {permiss && (
         <>

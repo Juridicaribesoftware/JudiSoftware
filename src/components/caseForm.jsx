@@ -37,9 +37,11 @@ const CaseForm = ({ caseId, setCaso, cerrar, user, casos, setCasos }) => {
         Axios('GET', `casos/${caseId._id}`, null)
         .then(res =>{
             setFormData(res.data.caso)
+            setloader(false)
         })
         .catch(err => {
             console.log(err)
+            setloader(false)
         })
     }, [])
     // Función para obtener el valor del campo o un mensaje predeterminado
